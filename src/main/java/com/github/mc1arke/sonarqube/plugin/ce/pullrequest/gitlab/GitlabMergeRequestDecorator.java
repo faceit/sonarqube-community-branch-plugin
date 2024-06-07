@@ -54,7 +54,7 @@ public class GitlabMergeRequestDecorator extends DiscussionAwarePullRequestDecor
             "com.github.mc1arke.sonarqube.plugin.branch.pullrequest.gitlab.pipelineId";
     public static final String PULLREQUEST_GITLAB_DONT_FAIL_PIPELINE =
             "sonar.analysis.com.github.mc1arke.sonarqube.plugin.branch.pullrequest.gitlab.dontFailPipeline";
-            
+
     private final GitlabClientFactory gitlabClientFactory;
     private final MarkdownFormatterFactory formatterFactory;
 
@@ -123,11 +123,14 @@ public class GitlabMergeRequestDecorator extends DiscussionAwarePullRequestDecor
         Long pipelineId = analysis.getScannerProperty(PULLREQUEST_GITLAB_PIPELINE_ID)
                 .map(Long::parseLong)
                 .orElse(null);
-
+        boolean dontFailPipeline = analysis.getScannerProperty(PULLREQUEST_GITLAB_DONT_FAIL_PIPELINE)
+                .map(Boolean::parseBoolean)
+                .orElse(false);
+                
         try {
             PipelineStatus pipelineStatus = new PipelineStatus("SonarQube",
                     "SonarQube Status",
-                    analysis.getQualityGateStatus() == QualityGate.Status.OK ? PipelineStatus.State.SUCCESS : PipelineStatus.State.FAILED,
+                    analysis.getQualityGateStatus() == QualityGate.Status.OK || dontFailPipeline ? PipelineStatus.State.SUCCESS : PipelineStatus.State.FAILED,
                     analysisSummary.getDashboardUrl(),
                     analysisSummary.getNewCoverage(),
                     pipelineId);
